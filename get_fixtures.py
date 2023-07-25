@@ -2,7 +2,7 @@ import httpx
 import pandas as pd
 
 
-def get_all_fixtures(date_string: str):
+def get_all_fixtures(date_string: str) -> list:
     headers = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'
     }
@@ -49,6 +49,10 @@ def transform_result(results: list) -> pd.DataFrame:
             }
             datas.append(data)
     df = pd.DataFrame(datas)
+    df['start_time'] = df['start_time'].astype(
+        str).str[-6:-4] + ':' + df['start_time'].astype(str).str[-4:-2]
+
+    print(df.head())
     return df
 
 

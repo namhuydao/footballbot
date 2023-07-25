@@ -18,8 +18,10 @@ bot = telebot.TeleBot(TOKEN)
 @bot.message_handler(commands=["start", "hello"])
 def handle_start_hello(message):
     bot.reply_to(message, "Hi! Here are things you can do:")
-    bot.send_message(message.chat.id, "type /transfers to see the transfer news")
-    bot.send_message(message.chat.id, "type /matchfixtures to see the match results")
+    bot.send_message(
+        message.chat.id, "type /transfers to see the transfer informations")
+    bot.send_message(
+        message.chat.id, "type /matchfixtures to see the match results")
 
 
 @bot.message_handler(commands=["transfers"])
@@ -42,7 +44,8 @@ def handle_transfers(message):
     )
     markup.row(today, yesterday, day_3_from_now)
     markup.row(day_4_from_now, day_5_from_now, day_6_from_now)
-    send_msg = bot.send_message(message.chat.id, "Choose the day?", reply_markup=markup)
+    send_msg = bot.send_message(
+        message.chat.id, "Choose the day?", reply_markup=markup)
     bot.register_next_step_handler(send_msg, handle_selected_date)
 
 
@@ -54,7 +57,7 @@ def handle_selected_date(message):
         num_day_from_now = 1
     else:
         num_day_from_now = (
-            date.today() - datetime.strptime(selected_date.strip(), "%d-%m-%Y").date()
+            date.today() - datetime.strptime(selected_date, "%d-%m-%Y").date()
         ).days
 
     markup = types.ReplyKeyboardMarkup()
@@ -64,7 +67,8 @@ def handle_selected_date(message):
     toptrans = types.KeyboardButton("Top transfer")
 
     markup.row(all, major, toptrans)
-    send_msg = bot.send_message(message.chat.id, "What type then?", reply_markup=markup)
+    send_msg = bot.send_message(
+        message.chat.id, "What type then?", reply_markup=markup)
     bot.register_next_step_handler(send_msg, handle_type, num_day_from_now)
 
 
@@ -168,12 +172,8 @@ def handle_group_fixture(message):
                 text_message += f"{str(type)} \n"
 
                 for _, result in results.iterrows():
-                    result["start_time"] = str(result["start_time"])
-                    start_time = (
-                        f"{result['start_time'][-6:-4]}:{result['start_time'][-4:-2]}"
-                    )
                     if result["status"] == "NS":
-                        text_message += f"{start_time}   {result['home_team']} - {result['away_team']}\n"
+                        text_message += f"{result['start_time}']:   {result['home_team']} - {result['away_team']}\n"
                     else:
                         text_message += f"{result['status']}:   {result['home_team']} {result['home_score_all']}-{result['away_score_all']} {result['away_team']}\n"
 
