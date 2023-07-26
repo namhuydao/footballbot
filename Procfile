@@ -1,1 +1,1 @@
-bot: python bot_prod.py
+bot: python prod_bot.py
