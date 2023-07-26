@@ -40,12 +40,12 @@ def transform_result(results: list) -> pd.DataFrame:
             if 'Trp1' not in event.keys():
                 home_score_pen = None
             else:
-                home_score_pen = event['Tr1OR']
+                home_score_pen = event['Trp1']
 
             if 'Trp2' not in event.keys():
                 away_score_pen = None
             else:
-                away_score_pen = event['Tr2OR']
+                away_score_pen = event['Trp2']
 
             data = {
                 'type': result['Snm'],
