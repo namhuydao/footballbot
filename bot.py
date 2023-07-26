@@ -173,6 +173,8 @@ def handle_group_fixture(message):
                 for _, result in results.iterrows():
                     if result["status"] == "NS":
                         text_message += f"{result['start_time']}:   {result['home_team']} - {result['away_team']}\n"
+                    elif result['status'] == 'AP':
+                        text_message += f"{result['status']}:   {result['home_team']} {result['home_score_all']}({result['home_score_pen']})-{result['away_score_all']}({result['away_score_pen']}) {result['away_team']}\n"
                     else:
                         text_message += f"{result['status']}:   {result['home_team']} {result['home_score_all']}-{result['away_score_all']} {result['away_team']}\n"
 

@@ -37,6 +37,16 @@ def transform_result(results: list) -> pd.DataFrame:
             else:
                 away_score_all = event['Tr2OR']
 
+            if 'Trp1' not in event.keys():
+                home_score_pen = None
+            else:
+                home_score_pen = event['Tr1OR']
+
+            if 'Trp2' not in event.keys():
+                away_score_pen = None
+            else:
+                away_score_pen = event['Tr2OR']
+
             data = {
                 'type': result['Snm'],
                 'league': result['Cnm'],
@@ -46,6 +56,8 @@ def transform_result(results: list) -> pd.DataFrame:
                 'start_time': event['Esd'],
                 'home_score_all': home_score_all,
                 'away_score_all': away_score_all,
+                'home_score_pen': home_score_pen,
+                'away_score_pen': away_score_pen,
             }
             datas.append(data)
     df = pd.DataFrame(datas)
