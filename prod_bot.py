@@ -1,13 +1,10 @@
 import os
 import telebot
 from telebot import types
-from dotenv import load_dotenv
 from datetime import date, datetime, timedelta
 from get_transfers import get_all_transfers
 from get_fixtures import get_all_fixtures
 
-
-load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
 
