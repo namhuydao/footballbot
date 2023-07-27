@@ -113,7 +113,7 @@ def handle_selected_date(query: str):
         "Top transfer", callback_data=f"toptrans-{num_day_from_now}"
     )
     back = types.InlineKeyboardButton(
-        "<< Back to choose date", callback_data="back-to-select-date"
+        "<< Back to date select", callback_data="back-to-select-date"
     )
 
     markup.row(all, major)
