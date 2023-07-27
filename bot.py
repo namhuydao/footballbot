@@ -161,10 +161,10 @@ def handle_type(query: str):
     list_text_message: list = []
     text_message: str = ""
     if len(results) == 0:
-        bot.send_message(query.message.chat.id, "No transfer happening yet")
+        bot.send_message(query.message.chat.id, "No transfer")
     else:
         bot.send_message(
-            query.message.chat.id, "Here are some transfer that happening this day:"
+            query.message.chat.id, "Transfers in selected date:"
         )
 
         for _, result in results.iterrows():
