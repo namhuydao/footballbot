@@ -13,22 +13,35 @@ TOKEN = os.getenv("TOKEN")
 
 bot = telebot.TeleBot(TOKEN)
 
+bot_user = bot.get_me()
+
 
 # Commands
 @bot.message_handler(commands=["start", "hello"])
 def handle_start_hello(message: str):
-    bot.reply_to(message, "Hi! Here are things you can do:")
-    bot.send_message(
-        message.chat.id, "type /transfers to see the transfer informations"
-    )
-    bot.send_message(message.chat.id, "type /matchfixtures to see the match results")
+    if (
+        message.chat.type == "group"
+        or message.chat.type == "supergroup"
+        or message.chat.type == "channel"
+    ) and message.text.__contains__(f"@{bot_user.username}"):
+        bot.reply_to(message, "Hi! Here are things you can do:")
+        bot.send_message(
+            message.chat.id, "type /transfers to see the transfer informations"
+        )
+        bot.send_message(
+            message.chat.id, "type /matchfixtures to see the match results"
+        )
 
 
 @bot.message_handler(commands=["transfers"])
 def handle_transfers(message: str):
-    markup = select_date_template()
+    if message.chat.type == "private" or (
+        message.chat.type == "group"
+        and message.text.__contains__(f"@{bot_user.username}")
+    ):
+        markup = select_date_template()
 
-    bot.send_message(message.chat.id, "Select date?", reply_markup=markup)
+        bot.send_message(message.chat.id, "Select date?", reply_markup=markup)
 
 
 @bot.message_handler(commands=["matchfixtures"])
@@ -81,12 +94,13 @@ def select_type_template(num_day_from_now: int):
 
     return markup
 
+
 def fixture_template():
     markup = types.InlineKeyboardMarkup()
 
-    top10 = types.InlineKeyboardButton("Top 10", callback_data="Top 10")
-    top25 = types.InlineKeyboardButton("Top 25", callback_data="Top 25")
-    top50 = types.InlineKeyboardButton("Top 50", callback_data="Top 50")
+    top10 = types.InlineKeyboardButton("Top 25", callback_data="Top 25")
+    top25 = types.InlineKeyboardButton("Top 50", callback_data="Top 50")
+    top50 = types.InlineKeyboardButton("Top 100", callback_data="Top 100")
     england = types.InlineKeyboardButton("England", callback_data="England")
     spain = types.InlineKeyboardButton("Spain", callback_data="Spain")
     italy = types.InlineKeyboardButton("Italy", callback_data="Italy")
@@ -193,7 +207,7 @@ def handle_get_transfers(query: str):
                 f"to {result['destination']} {result['amount']} \n \n"
             )
 
-            if len(text_message) > 4000:
+            if len(text_message) > 3000:
                 list_text_message.append(text_message)
                 text_message = ""
         list_text_message.append(text_message)
@@ -205,9 +219,9 @@ def handle_get_transfers(query: str):
 @bot.callback_query_handler(
     lambda query: query.data
     in [
-        "Top 10",
         "Top 25",
         "Top 50",
+        "Top 100",
         "England",
         "Spain",
         "Italy",
@@ -231,16 +245,16 @@ def handle_group_fixtures(query: str):
 
     results: list = get_all_fixtures(date.today().strftime("%Y%m%d"))
 
-    if query.data == "Top 10":
-        results: pd.DataFrame = results.head(10)
-    elif query.data == "Top 25":
+    if query.data == "Top 25":
         results: pd.DataFrame = results.head(25)
     elif query.data == "Top 50":
         results: pd.DataFrame = results.head(50)
+    elif query.data == "Top 100":
+        results: pd.DataFrame = results.head(100)
     else:
         results: pd.DataFrame = results.loc[results["league"] == query.data]
 
-    group_by_league: pd.DataFrame = results.groupby("league")
+    group_by_league: pd.DataFrame = results.groupby("league", sort=False)
 
     list_text_message: list = []
     text_message: str = ""
@@ -258,11 +272,11 @@ def handle_group_fixtures(query: str):
         )
 
         for league, results in group_by_league:
-            text_message += f"\n{str(league)} \n"
-            group_by_type: pd.DataFrame = results.groupby("type")
+            text_message += f"\n{str(league)}\n"
+            group_by_type: pd.DataFrame = results.groupby("type", sort=False)
 
             for type, results in group_by_type:
-                text_message += f"{str(type)} \n"
+                text_message += f"      {str(type)} \n"
 
                 for _, result in results.iterrows():
                     if result["status"] == "NS":
@@ -271,7 +285,7 @@ def handle_group_fixtures(query: str):
                         text_message += f"{result['status']}:   {result['home_team']} {result['home_score_all']}({result['home_score_pen']})-{result['away_score_all']}({result['away_score_pen']}) {result['away_team']}\n"
                     else:
                         text_message += f"{result['status']}:   {result['home_team']} {result['home_score_all']}-{result['away_score_all']} {result['away_team']}\n"
-            if len(text_message) > 4000:
+            if len(text_message) > 3000:
                 list_text_message.append(text_message)
                 text_message = ""
 
