@@ -38,10 +38,11 @@ def handle_start_hello(message: str):
 
 @bot.message_handler(commands=["transfers"])
 def handle_transfers(message: str):
-    if message.chat.type == "private" or (
+   if (
         message.chat.type == "group"
-        and message.text.__contains__(f"@{bot_user.username}")
-    ):
+        or message.chat.type == "supergroup"
+        or message.chat.type == "channel"
+    ) and message.text.__contains__(f"@{bot_user.username}"):
         markup = select_date_template()
 
         bot.send_message(message.chat.id, "Select date?", reply_markup=markup)
@@ -49,9 +50,14 @@ def handle_transfers(message: str):
 
 @bot.message_handler(commands=["matchfixtures"])
 def handle_match_fixtures(message: str):
-    markup = fixture_template()
+    if (
+        message.chat.type == "group"
+        or message.chat.type == "supergroup"
+        or message.chat.type == "channel"
+    ) and message.text.__contains__(f"@{bot_user.username}"):
+        markup = fixture_template()
 
-    bot.send_message(message.chat.id, "Choose one of these below", reply_markup=markup)
+        bot.send_message(message.chat.id, "Choose one of these below", reply_markup=markup)
 
 
 # Markup Templates
