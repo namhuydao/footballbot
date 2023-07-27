@@ -36,12 +36,12 @@ def transform_results(results: list) -> pd.DataFrame:
         events = result["Events"]
 
         for event in events:
-            if "Tr1OR" not in event.keys():
+            if "Tr1" not in event.keys():
                 home_score_all = None
             else:
                 home_score_all = event["Tr1"]
 
-            if "Tr2OR" not in event.keys():
+            if "Tr2" not in event.keys():
                 away_score_all = None
             else:
                 away_score_all = event["Tr2"]
