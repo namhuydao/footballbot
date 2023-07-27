@@ -29,7 +29,7 @@ def handle_start_hello(message: str):
 
 @bot.message_handler(commands=["transfers"])
 def handle_transfers(message: str):
-    markup = transfer_template()
+    markup = select_date_template()
 
     bot.send_message(message.chat.id, "Select date?", reply_markup=markup)
 
@@ -42,7 +42,7 @@ def handle_match_fixtures(message: str):
 
 
 # Markup Templates
-def transfer_template():
+def select_date_template():
     markup = types.InlineKeyboardMarkup()
 
     today = types.InlineKeyboardButton("today", callback_data="0")
@@ -64,6 +64,25 @@ def transfer_template():
 
     return markup
 
+
+def select_type_template(num_day_from_now: int):
+    markup = types.InlineKeyboardMarkup()
+
+    all = types.InlineKeyboardButton("All", callback_data=f"full-{num_day_from_now}")
+    major = types.InlineKeyboardButton(
+        "Major league", callback_data=f"majorc-{num_day_from_now}"
+    )
+    toptrans = types.InlineKeyboardButton(
+        "Top transfer", callback_data=f"toptrans-{num_day_from_now}"
+    )
+    back = types.InlineKeyboardButton(
+        "<< Back to date select", callback_data="back-to-select-date"
+    )
+
+    markup.row(all, major)
+    markup.row(toptrans, back)
+
+    return markup
 
 def fixture_template():
     markup = types.InlineKeyboardMarkup()
@@ -103,24 +122,10 @@ def fixture_template():
 
 # Callback handler
 @bot.callback_query_handler(lambda query: query.data in ["0", "1", "2", "3", "4", "5"])
-def handle_selected_date(query: str):
+def handle_select_type(query: str):
     num_day_from_now: int = int(query.data)
 
-    markup = types.InlineKeyboardMarkup()
-
-    all = types.InlineKeyboardButton("All", callback_data=f"full-{num_day_from_now}")
-    major = types.InlineKeyboardButton(
-        "Major league", callback_data=f"majorc-{num_day_from_now}"
-    )
-    toptrans = types.InlineKeyboardButton(
-        "Top transfer", callback_data=f"toptrans-{num_day_from_now}"
-    )
-    back = types.InlineKeyboardButton(
-        "<< Back to date select", callback_data="back-to-select-date"
-    )
-
-    markup.row(all, major)
-    markup.row(toptrans, back)
+    markup = select_type_template(num_day_from_now)
 
     bot.edit_message_text(
         chat_id=query.message.chat.id,
@@ -132,12 +137,12 @@ def handle_selected_date(query: str):
 
 @bot.callback_query_handler(lambda query: query.data == "back-to-select-date")
 def handle_back_to_select_date(query: str):
-    markup = transfer_template()
+    markup = select_date_template()
 
     bot.edit_message_text(
         chat_id=query.message.chat.id,
         message_id=query.message.message_id,
-        text="Choose the day?",
+        text="Select date?",
         reply_markup=markup,
     )
 
@@ -145,7 +150,7 @@ def handle_back_to_select_date(query: str):
 @bot.callback_query_handler(
     lambda query: re.match("(full|majorc|toptrans)-.", query.data)
 )
-def handle_type(query: str):
+def handle_get_transfers(query: str):
     type: str = query.data.split("-")[0]
     full_type: str = (
         "All" if type == "full" else ("Major league" if type == "majorc" else "Top")
@@ -188,7 +193,7 @@ def handle_type(query: str):
 
             text_message += (
                 f"{result['player_name']} from {result['start']} "
-                f"to {result['destination']} {result['amount']} \n"
+                f"to {result['destination']} {result['amount']} \n \n"
             )
 
             if len(text_message) > 4000:
@@ -219,7 +224,7 @@ def handle_type(query: str):
         "Man's Euro",
     ]
 )
-def handle_group_fixture(query: str):
+def handle_group_fixtures(query: str):
     bot.edit_message_text(
         chat_id=query.message.chat.id,
         message_id=query.message.message_id,
