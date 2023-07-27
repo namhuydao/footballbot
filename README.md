@@ -1,5 +1,6 @@
 # Footballbot
-  Real-time football fixtures and transfer informations
+  Real-time football fixtures and transfer informations  
+  You can find me at [@nhFootballbot](https://t.me/nhFootballBot) on Telegram :)
 
 ## Usage
 ### Pre-processing:
@@ -14,3 +15,4 @@
 - `source env/bin/activate`
 - `pip install -r requirements.txt`
 - `python3 bot.py` (or `python bot.py`)
+
