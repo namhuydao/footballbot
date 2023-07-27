@@ -31,7 +31,7 @@ def handle_start_hello(message: str):
 def handle_transfers(message: str):
     markup = transfer_template()
 
-    bot.send_message(message.chat.id, "Choose the day?", reply_markup=markup)
+    bot.send_message(message.chat.id, "Choose the date?", reply_markup=markup)
 
 @bot.message_handler(commands=["matchfixtures"])
 def handle_match_fixtures(message: str):
