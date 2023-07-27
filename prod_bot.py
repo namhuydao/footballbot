@@ -162,13 +162,15 @@ def handle_type(query: str):
     text_message: str = ""
     if len(results) == 0:
         bot.edit_message_text(
-            query.message.chat.id, query.message.message_id, "No transfer"
+            chat_id=query.message.chat.id,
+            message_id=query.message.message_id,
+            text="No transfer",
         )
     else:
         bot.edit_message_text(
-            query.message.chat.id,
-            query.message.message_id,
-            f"{full_type} transfers in {(date.today() - timedelta(days=num_day_from_now)).strftime('%d-%m-%Y')}:",
+            chat_id=query.message.chat.id,
+            message_id=query.message.message_id,
+            text=f"{full_type} transfers in {(date.today() - timedelta(days=num_day_from_now)).strftime('%d-%m-%Y')}:",
         )
 
         for _, result in results.iterrows():
@@ -239,13 +241,15 @@ def handle_group_fixture(query: str):
     text_message: str = ""
     if len(results) == 0:
         bot.edit_message_text(
-            query.message.chat.id, query.message.message_id, "No fixture today"
+            chat_id=query.message.chat.id,
+            message_id=query.message.message_id,
+            text="No fixture today",
         )
     else:
         bot.edit_message_text(
-            query.message.chat.id,
-            query.message.message_id,
-            f"Today {query.data} fixtures",
+            chat_id=query.message.chat.id,
+            message_id=query.message.message_id,
+            text=f"Today {query.data} fixtures",
         )
 
         for league, results in group_by_league:
