@@ -13,7 +13,7 @@ def parse_html(html: str) -> list:
     try:
         html = HTMLParser(html)
         transfer_infos = html.css('tr.line')
-        results = []
+        results: list = []
         for transfer_info in transfer_infos:
             if transfer_info.css_first('td.firstteam a') is not None:
                 start = transfer_info.css_first('td.firstteam a').text(strip=True)
@@ -44,12 +44,12 @@ def parse_html(html: str) -> list:
 
 
 def get_all_transfers(number_day_from_now: int, type: str) -> str:
-    results = []
+    results: list = []
 
-    i = 0
+    i: int = 0
     while True:
         i = i + 1
-        data = {
+        data: dict = {
             'date': datetime.now(),
             'pid': number_day_from_now + 1,
             'page': i,
@@ -78,7 +78,7 @@ def get_all_transfers(number_day_from_now: int, type: str) -> str:
 
 
 def transform_results(results: list) -> pd.DataFrame:
-    df = pd.DataFrame(results)
+    df: pd.DataFrame = pd.DataFrame(results)
     if len(results) == 0:
         return df
 

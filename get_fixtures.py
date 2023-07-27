@@ -7,11 +7,12 @@ logger = logging.getLogger(__name__)
 
 
 def get_all_fixtures(date_string: str) -> list:
-    headers = {
+    headers: dict = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
     }
-    url = f"https://prod-public-api.livescore.com/v1/api/app/date/soccer/{date_string}/7?MD=1&countryCode=VN"
-    results = []
+    url: str = f"https://prod-public-api.livescore.com/v1/api/app/date/soccer/{date_string}/7?MD=1&countryCode=VN"
+    results: list = []
+
     with httpx.Client() as client:
         try:
             resp = client.get(url, headers=headers)
@@ -27,7 +28,7 @@ def get_all_fixtures(date_string: str) -> list:
 
 
 def transform_results(results: list) -> pd.DataFrame:
-    datas = []
+    datas: list = []
     if len(results) == 0:
         return df
 
@@ -68,7 +69,7 @@ def transform_results(results: list) -> pd.DataFrame:
                 "away_score_pen": away_score_pen,
             }
             datas.append(data)
-    df = pd.DataFrame(datas)
+    df: pd.DataFrame = pd.DataFrame(datas)
     df["start_time"] = (
         df["start_time"].astype(str).str[-6:-4]
         + ":"
