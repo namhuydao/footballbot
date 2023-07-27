@@ -46,13 +46,6 @@ def parse_html(html: str) -> list:
 def get_all_transfers(number_day_from_now: int, type: str) -> str:
     results = []
 
-    if type == 'All':
-        type = 'full'
-    elif type == 'Major league':
-        type = 'majorc'
-    elif type == 'Top transfer':
-        type = 'toptrans'
-
     i = 0
     while True:
         i = i + 1
