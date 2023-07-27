@@ -2,15 +2,12 @@ import os
 import telebot
 import re
 from telebot import types
-from dotenv import load_dotenv
 from datetime import date, timedelta
 import pandas as pd
 
 from get_transfers import get_all_transfers
 from get_fixtures import get_all_fixtures
 
-
-load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
 
@@ -22,39 +19,47 @@ bot_user = bot.get_me()
 # Commands
 @bot.message_handler(commands=["start", "hello"])
 def handle_start_hello(message: str):
-    if (
-        message.chat.type == "group"
-        or message.chat.type == "supergroup"
-        or message.chat.type == "channel"
-    ) and message.text.__contains__(f"@{bot_user.username}"):
+    if message.chat.type == "group" or message.chat.type == "supergroup" or message.chat.type == "channel":
+        if message.text.__contains__(f"@{bot_user.username}"):
+            bot.reply_to(message, "Hi! Here are things you can do:")
+            bot.send_message(
+                message.chat.id, "type /transfers to see the transfer informations"
+            )
+            bot.send_message(
+                message.chat.id, "type /matchfixtures to see the match results"
+            )
+    else:
         bot.reply_to(message, "Hi! Here are things you can do:")
         bot.send_message(
-            message.chat.id, "type /transfers to see the transfer informations"
-        )
+                message.chat.id, "type /transfers to see the transfer informations"
+            )
         bot.send_message(
-            message.chat.id, "type /matchfixtures to see the match results"
-        )
+                message.chat.id, "type /matchfixtures to see the match results"
+            )
 
 
 @bot.message_handler(commands=["transfers"])
 def handle_transfers(message: str):
-   if (
-        message.chat.type == "group"
-        or message.chat.type == "supergroup"
-        or message.chat.type == "channel"
-    ) and message.text.__contains__(f"@{bot_user.username}"):
+    if message.chat.type == "group" or message.chat.type == "supergroup" or message.chat.type == "channel":
+        if message.text.__contains__(f"@{bot_user.username}"):
+            markup = select_date_template()
+
+        bot.send_message(message.chat.id, "Select date?", reply_markup=markup)
+    else:
         markup = select_date_template()
 
         bot.send_message(message.chat.id, "Select date?", reply_markup=markup)
 
 
+
 @bot.message_handler(commands=["matchfixtures"])
 def handle_match_fixtures(message: str):
-    if (
-        message.chat.type == "group"
-        or message.chat.type == "supergroup"
-        or message.chat.type == "channel"
-    ) and message.text.__contains__(f"@{bot_user.username}"):
+    if message.chat.type == "group" or message.chat.type == "supergroup" or message.chat.type == "channel":
+        if message.text.__contains__(f"@{bot_user.username}"):
+            markup = fixture_template()
+
+            bot.send_message(message.chat.id, "Choose one of these below", reply_markup=markup)
+    else:
         markup = fixture_template()
 
         bot.send_message(message.chat.id, "Choose one of these below", reply_markup=markup)
