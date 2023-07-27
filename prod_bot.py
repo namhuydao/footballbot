@@ -30,6 +30,7 @@ def handle_transfers(message: str):
 
     bot.send_message(message.chat.id, "Select date?", reply_markup=markup)
 
+
 @bot.message_handler(commands=["matchfixtures"])
 def handle_match_fixtures(message: str):
     markup = fixture_template()
@@ -97,7 +98,6 @@ def fixture_template():
     return markup
 
 
-
 # Callback handler
 @bot.callback_query_handler(lambda query: query.data in ["0", "1", "2", "3", "4", "5"])
 def handle_selected_date(query: str):
@@ -144,6 +144,9 @@ def handle_back_to_select_date(query: str):
 )
 def handle_type(query: str):
     type: str = query.data.split("-")[0]
+    full_type: str = (
+        "All" if type == "full" else ("Major league" if type == "majorc" else "Top")
+    )
     num_day_from_now: int = int(query.data.split("-")[1])
 
     bot.edit_message_text(
@@ -161,7 +164,8 @@ def handle_type(query: str):
         bot.send_message(query.message.chat.id, "No transfer")
     else:
         bot.send_message(
-            query.message.chat.id, "Transfers in selected date:"
+            query.message.chat.id,
+            f"{full_type} transfers in {(date.today() - timedelta(days=num_day_from_now)).strftime('%d-%m-%Y')}:",
         )
 
         for _, result in results.iterrows():
@@ -233,6 +237,8 @@ def handle_group_fixture(query: str):
     if len(results) == 0:
         bot.send_message(query.message.chat.id, "No fixture today")
     else:
+        bot.send_message(query.message.chat.id, f"Today {query.data} fixtures")
+
         for league, results in group_by_league:
             text_message += f"\n{str(league)} \n"
             group_by_type: pd.DataFrame = results.groupby("type")
