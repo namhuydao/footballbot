@@ -7,12 +7,17 @@ logger = logging.getLogger(__name__)
 
 
 def get_all_fixtures(date_string: str) -> list:
-    headers: dict = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
-    }
-    url: str = f"https://prod-public-api.livescore.com/v1/api/app/date/soccer/{date_string}/7?MD=1&countryCode=VN"
-    results: list = []
+    useragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1)" \
+        " AppleWebKit/537.36 (KHTML, like Gecko)" \
+        " Chrome/39.0.2171.95 Safari/537.36"
 
+    headers: dict = {
+        "User-Agent": useragent
+    }
+    url: str = f"https://prod-public-api.livescore.com/v1/api" \
+        f"/app/date/soccer/{date_string}/7?MD=1&countryCode=VN"
+
+    results: list = []
     with httpx.Client() as client:
         try:
             resp = client.get(url, headers=headers)
@@ -23,38 +28,22 @@ def get_all_fixtures(date_string: str) -> list:
         results = transform_results(results["Stages"])
         return results
     else:
-        logger.error(f"Error trying to fetch api")
+        logger.error("Error trying to fetch api")
         return []
 
 
 def transform_results(results: list) -> pd.DataFrame:
     datas: list = []
     if len(results) == 0:
-        return df
+        return pd.DataFrame(datas)
 
     for result in results:
         events = result["Events"]
-
         for event in events:
-            if "Tr1" not in event.keys():
-                home_score_all = None
-            else:
-                home_score_all = event["Tr1"]
-
-            if "Tr2" not in event.keys():
-                away_score_all = None
-            else:
-                away_score_all = event["Tr2"]
-
-            if "Trp1" not in event.keys():
-                home_score_pen = None
-            else:
-                home_score_pen = event["Trp1"]
-
-            if "Trp2" not in event.keys():
-                away_score_pen = None
-            else:
-                away_score_pen = event["Trp2"]
+            home_score_all = event['Tr1'] if 'Tr1' in event.keys() else None
+            away_score_all = event['Tr2'] if 'Tr2' in event.keys() else None
+            home_score_pen = event['Trp1'] if 'Trp1' in event.keys() else None
+            away_score_pen = event['Trp2'] if 'Trp2' in event.keys() else None
 
             data = {
                 "type": result["Snm"],
@@ -76,7 +65,7 @@ def transform_results(results: list) -> pd.DataFrame:
         + df["start_time"].astype(str).str[-4:-2]
     )
 
-    logger.info(f"Transforming results successful!")
+    logger.info("Transforming results successful!")
 
     return df
 

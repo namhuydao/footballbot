@@ -9,16 +9,18 @@ logger = logging.getLogger(__name__)
 
 
 def parse_html(html: str) -> list:
-    logger.info(f"Start parsing page content!")
+    logger.info("Start parsing page content!")
     try:
         html = HTMLParser(html)
         transfer_infos = html.css('tr.line')
         results: list = []
         for transfer_info in transfer_infos:
             if transfer_info.css_first('td.firstteam a') is not None:
-                start = transfer_info.css_first('td.firstteam a').text(strip=True)
+                start = transfer_info.css_first(
+                    'td.firstteam a').text(strip=True)
             elif transfer_info.css_first('td.firstteam') is not None:
-                start = transfer_info.css_first('td.firstteam').text(strip=True)
+                start = transfer_info.css_first(
+                    'td.firstteam').text(strip=True)
             else:
                 start = None
 
@@ -37,10 +39,10 @@ def parse_html(html: str) -> list:
                     'td.transferamount').text(strip=True)}
 
             results.append(transfer)
-        logger.info(f"Successfully parsing page content!")
+        logger.info("Successfully parsing page content!")
         return results
-    except Exception as e:
-        logger.error(f"Parsing page content error!")
+    except Exception:
+        logger.error("Parsing page content error!")
 
 
 def get_all_transfers(number_day_from_now: int, type: str) -> str:
@@ -65,15 +67,16 @@ def get_all_transfers(number_day_from_now: int, type: str) -> str:
                 logger.error(f"Timeout Exception: {e}")
 
         if resp.status_code != 200:
-            logger.error(f"No response received, status code: {resp.status_code}")
+            logger.error(
+                f"No response received, status code: {resp.status_code}")
             break
         if not resp.text.__contains__("<tr class='line"):
-            logger.info(f"Page doesn't contain transfer informations")
+            logger.info("Page doesn't contain transfer informations")
             break
         results.extend(parse_html(resp.text))
 
     results = transform_results(results)
-    logger.info(f"Data crawled from footballdatabase successful!")
+    logger.info("Data crawled from footballdatabase successful!")
     return results
 
 
@@ -91,8 +94,8 @@ def transform_results(results: list) -> pd.DataFrame:
         lambda x: 'Free' if x == 'libre' else x)
     df['destination'] = df['destination'].apply(
         lambda x: x.replace('xa0', ' '))
-    
-    logger.info(f"Transforming results successful!")
+
+    logger.info("Transforming results successful!")
     return df
 
 
