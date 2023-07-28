@@ -17,7 +17,7 @@ bot_user = bot.get_me()
 
 
 # Commands
-@bot.message_handler(commands=["start", "hello"])
+@bot.message_handler(commands=["start", "help"])
 def handle_start_hello(message: str):
     if (message.chat.type == "group" or message.chat.type == "supergroup"
             or message.chat.type == "channel"):
@@ -26,7 +26,7 @@ def handle_start_hello(message: str):
                          text="Hi! Here are things you can do:")
             bot.send_message(
                 chat_id=message.chat.id,
-                text="type /transfers to see the transfer informations"
+                text="type /transfers to see the player transfer informations"
             )
             bot.send_message(
                 chat_id=message.chat.id,
@@ -37,7 +37,7 @@ def handle_start_hello(message: str):
                      text="Hi! Here are things you can do:")
         bot.send_message(
             chat_id=message.chat.id,
-            text="type /transfers to see the transfer informations"
+            text="type /transfers to see the player transfer informations"
         )
         bot.send_message(
             chat_id=message.chat.id,
