@@ -16,3 +16,6 @@
 - `pip install -r requirements.txt`
 - `python3 bot.py` (or `python bot.py`)
 
+### Or using Docker:
+
+- run `docker-compose up --build`
