@@ -6,8 +6,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def get_all_fixtures(date_string: str) -> list:
-    useragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1)" \
+def get_all_fixtures(date_string: str) -> pd.DataFrame:
+    useragent: str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1)" \
         " AppleWebKit/537.36 (KHTML, like Gecko)" \
         " Chrome/39.0.2171.95 Safari/537.36"
 
@@ -17,7 +17,6 @@ def get_all_fixtures(date_string: str) -> list:
     url: str = f"https://prod-public-api.livescore.com/v1/api" \
         f"/app/date/soccer/{date_string}/7?MD=1&countryCode=VN"
 
-    results: list = []
     with httpx.Client() as client:
         try:
             resp = client.get(url, headers=headers)
@@ -29,7 +28,7 @@ def get_all_fixtures(date_string: str) -> list:
         return results
     else:
         logger.error("Error trying to fetch api")
-        return []
+        return pd.DataFrame()
 
 
 def transform_results(results: list) -> pd.DataFrame:

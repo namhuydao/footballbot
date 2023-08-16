@@ -45,7 +45,7 @@ def parse_html(html: str) -> list:
         logger.error("Parsing page content error!")
 
 
-def get_all_transfers(number_day_from_now: int, type: str) -> str:
+def get_all_transfers(number_day_from_now: int, type: str) -> pd.DataFrame:
     results: list = []
 
     i: int = 0
@@ -75,9 +75,9 @@ def get_all_transfers(number_day_from_now: int, type: str) -> str:
             break
         results.extend(parse_html(resp.text))
 
-    results = transform_results(results)
+    dfresults: pd.DataFrame = transform_results(results)
     logger.info("Data crawled from footballdatabase successful!")
-    return results
+    return dfresults
 
 
 def transform_results(results: list) -> pd.DataFrame:
