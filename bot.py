@@ -8,7 +8,7 @@ import pandas as pd
 
 from get_transfers import get_all_transfers
 from get_fixtures import get_all_fixtures
-
+from get_standings import get_standings
 
 load_dotenv()
 
@@ -21,7 +21,7 @@ bot_user = bot.get_me()
 
 # Commands
 @bot.message_handler(commands=["start", "help"])
-def handle_start_hello(message: str):
+def handle_start_hello(message: types.Message):
     if (message.chat.type == "group" or message.chat.type == "supergroup"
             or message.chat.type == "channel"):
         if message.text.__contains__(f"@{bot_user.username}"):
@@ -29,27 +29,35 @@ def handle_start_hello(message: str):
                          text="Hi! Here are things you can do:")
             bot.send_message(
                 chat_id=message.chat.id,
-                text="type /transfers to see the player transfer informations"
+                text="type /transfers to see the player transfer information"
             )
             bot.send_message(
                 chat_id=message.chat.id,
                 text="type /matchfixtures to see the match results"
+            )
+            bot.send_message(
+                chat_id=message.chat.id,
+                text="type /standings to see the competition standings"
             )
     else:
         bot.reply_to(message=message,
                      text="Hi! Here are things you can do:")
         bot.send_message(
             chat_id=message.chat.id,
-            text="type /transfers to see the player transfer informations"
+            text="type /transfers to see the player transfer information"
         )
         bot.send_message(
             chat_id=message.chat.id,
             text="type /matchfixtures to see the match results"
         )
+        bot.send_message(
+            chat_id=message.chat.id,
+            text="type /standings to see the competition standings"
+        )
 
 
 @bot.message_handler(commands=["transfers"])
-def handle_transfers(message: str):
+def handle_transfers(message: types.Message):
     if (message.chat.type == "group" or message.chat.type == "supergroup"
             or message.chat.type == "channel"):
         if message.text.__contains__(f"@{bot_user.username}"):
@@ -67,7 +75,7 @@ def handle_transfers(message: str):
 
 
 @bot.message_handler(commands=["matchfixtures"])
-def handle_match_fixtures(message: str):
+def handle_match_fixtures(message: types.Message):
     if (message.chat.type == "group" or message.chat.type == "supergroup"
             or message.chat.type == "channel"):
         if message.text.__contains__(f"@{bot_user.username}"):
@@ -79,6 +87,24 @@ def handle_match_fixtures(message: str):
                 reply_markup=markup)
     else:
         markup = fixture_template()
+
+        bot.send_message(
+            message.chat.id, "Choose one of these below", reply_markup=markup)
+
+
+@bot.message_handler(commands=["standings"])
+def handle_standings(message: types.Message):
+    if (message.chat.type == "group" or message.chat.type == "supergroup"
+            or message.chat.type == "channel"):
+        if message.text.__contains__(f"@{bot_user.username}"):
+            markup = standing_template()
+
+            bot.send_message(
+                chat_id=message.chat.id,
+                text="Choose one of these below",
+                reply_markup=markup)
+    else:
+        markup = standing_template()
 
         bot.send_message(
             message.chat.id, "Choose one of these below", reply_markup=markup)
@@ -172,9 +198,35 @@ def fixture_template():
     return markup
 
 
+def standing_template():
+    markup = types.InlineKeyboardMarkup()
+
+    vietnam = types.InlineKeyboardButton("Vietnam", callback_data="VIETNAM")
+    england = types.InlineKeyboardButton("England", callback_data="ENGLAND")
+    spain = types.InlineKeyboardButton("Spain", callback_data="SPAIN")
+    italy = types.InlineKeyboardButton("Italy", callback_data="ITALY")
+    germany = types.InlineKeyboardButton("Germany", callback_data="GERMANY")
+    france = types.InlineKeyboardButton("France", callback_data="FRANCE")
+    belgium = types.InlineKeyboardButton("Belgium", callback_data="BELGIUM")
+    netherlands = types.InlineKeyboardButton(
+        "Netherlands", callback_data="NETHERLANDS")
+    championleague = types.InlineKeyboardButton(
+        "Champion League", callback_data="CHAMPIONLEAGUE"
+    )
+    europaleague = types.InlineKeyboardButton(
+        "Europa League", callback_data="EUROPALEAGUE"
+    )
+
+    markup.row(vietnam, england, spain)
+    markup.row(germany, france, italy)
+    markup.row(belgium, netherlands, championleague)
+    markup.row(europaleague)
+
+    return markup
+
+
 # Callback handler
-@bot.callback_query_handler(lambda query: query.data in
-                            ["0", "1", "2", "3", "4", "5"])
+@bot.callback_query_handler(lambda query: query.data in ["0", "1", "2", "3", "4", "5"])
 def handle_select_type(query: str):
     num_day_from_now: int = int(query.data)
 
@@ -218,7 +270,7 @@ def handle_get_transfers(query: str):
         reply_markup=None,
     )
 
-    results: list = get_all_transfers(num_day_from_now, type)
+    results: pd.DataFrame = get_all_transfers(num_day_from_now, type)
 
     list_text_message: list = []
     text_message: str = ""
@@ -262,8 +314,7 @@ def handle_get_transfers(query: str):
 
 
 @bot.callback_query_handler(
-    lambda query: query.data
-    in [
+    lambda query: query.data in [
         "Top 25",
         "Top 50",
         "Top 100",
@@ -280,7 +331,7 @@ def handle_get_transfers(query: str):
         "Man's Euro",
     ]
 )
-def handle_group_fixtures(query: str):
+def handle_group_fixtures(query: types.CallbackQuery):
     bot.edit_message_text(
         chat_id=query.message.chat.id,
         message_id=query.message.message_id,
@@ -288,7 +339,7 @@ def handle_group_fixtures(query: str):
         reply_markup=None,
     )
 
-    results: list = get_all_fixtures(date.today().strftime("%Y%m%d"))
+    results: pd.DataFrame = get_all_fixtures(date.today().strftime("%Y%m%d"))
 
     if query.data == "Top 25":
         results: pd.DataFrame = results.head(25)
@@ -299,7 +350,7 @@ def handle_group_fixtures(query: str):
     else:
         results: pd.DataFrame = results.loc[results["league"] == query.data]
 
-    group_by_league: pd.DataFrame = results.groupby("league", sort=False)
+    group_by_league: pd.DataFrame.groupby = results.groupby("league", sort=False)
 
     list_text_message: list = []
     text_message: str = ""
@@ -318,7 +369,7 @@ def handle_group_fixtures(query: str):
 
         for league, results in group_by_league:
             text_message += f"\n{str(league)}\n"
-            group_by_type: pd.DataFrame = results.groupby("type", sort=False)
+            group_by_type: pd.DataFrame.groupby = results.groupby("type", sort=False)
 
             for type, results in group_by_type:
                 text_message += f"      {str(type)} \n"
@@ -338,6 +389,45 @@ def handle_group_fixtures(query: str):
 
         for text_message in list_text_message:
             bot.send_message(query.message.chat.id, text_message)
+
+
+@bot.callback_query_handler(
+    lambda query: query.data in [
+        "VIETNAM",
+        "ENGLAND",
+        "SPAIN",
+        "ITALY",
+        "GERMANY",
+        "BELGIUM",
+        "FRANCE",
+        "NETHERLANDS",
+        "CHAMPIONLEAGUE",
+        "EUROPALEAGUE",
+    ]
+)
+def handle_standings(query: types.CallbackQuery):
+    bot.edit_message_text(
+        chat_id=query.message.chat.id,
+        message_id=query.message.message_id,
+        text="processing... please wait",
+        reply_markup=None,
+    )
+
+    results: pd.DataFrame = get_standings(query.data)
+
+    if len(results) == 0:
+        bot.edit_message_text(
+            chat_id=query.message.chat.id,
+            message_id=query.message.message_id,
+            text="No standing yet",
+        )
+    else:
+        bot.edit_message_text(
+            chat_id=query.message.chat.id,
+            message_id=query.message.message_id,
+            text=f"Today {query.data} standing",
+        )
+        bot.send_message(query.message.chat.id, f"<pre>{results}</pre>", parse_mode='html')
 
 
 # Polling
