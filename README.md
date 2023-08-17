@@ -1,5 +1,5 @@
 # Footballbot
-  Real-time football fixtures and player transfer information  
+  Real-time football fixtures, competition standings and player transfer information  
   You can find me at [@nhFootballbot](https://t.me/nhFootballBot) on Telegram :)
 
 ## Usage
