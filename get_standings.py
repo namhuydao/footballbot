@@ -12,9 +12,9 @@ competitions: dict = {
     'FRANCE': 'f1mc9cijvfv3ageg1ykljyl1w',
     'NETHERLANDS': '3yyw70zr66ia7huendgax0idw',
     'BELGIUM': '3niff29a2qgmtfvf477muzztg',
-    'GERMANY': '',
-    'SPAIN': '',
-    'ITALY': '',
+    'GERMANY': '57kn7g4fqyuph2ik75rj3845w',
+    'SPAIN': 'emvz6soccxi1fjqlnefoyvpqs',
+    'ITALY': '87m80rp7z9qy4mmjm9ao5zndg',
     'CHAMPIONLEAGUE': '',
     'EUROPALEAGUE': '',
 }
