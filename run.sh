@@ -1,6 +1,8 @@
 #!/bin/bash
 echo "-----------------------initializing environment-----------------------"
-python3 -m venv env
+if [ ! -d "env" ]; then
+  python3 -m venv env
+fi
 
 echo "-----------------------activating environment-----------------------"
 . env/bin/activate

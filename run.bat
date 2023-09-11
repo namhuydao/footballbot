@@ -1,6 +1,8 @@
 echo "-----------------------initializing environment-----------------------"
+if exist env goto :SKIP
 python -m venv env
 
+:SKIP
 echo "-----------------------activating environment-----------------------"
 call "env\Scripts\activate.bat"
 
