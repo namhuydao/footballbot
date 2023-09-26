@@ -7,20 +7,20 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 competitions: dict = {
-    'VIETNAM': '976bcjxmlyn7afvrrnk6qg9hw',
-    'ENGLAND': 'c6fq6f5jb8xniw2tmam5pxo9g',
-    'FRANCE': 'f1mc9cijvfv3ageg1ykljyl1w',
-    'NETHERLANDS': '3yyw70zr66ia7huendgax0idw',
-    'BELGIUM': '3niff29a2qgmtfvf477muzztg',
-    'GERMANY': '57kn7g4fqyuph2ik75rj3845w',
-    'SPAIN': 'emvz6soccxi1fjqlnefoyvpqs',
-    'ITALY': '87m80rp7z9qy4mmjm9ao5zndg',
-    'CHAMPIONLEAGUE': '',
-    'EUROPALEAGUE': '',
+    'VIETNAM': 'aho73e5udydy96iun3tkzdzsi',
+    'ENGLAND': '2kwbbcootiqqgmrzs6o5inle5',
+    'FRANCE': 'dm5ka0os1e3dxcp3vh05kmp33',
+    'NETHERLANDS': 'akmkihra9ruad09ljapsm84b3',
+    'BELGIUM': '4zwgbb66rif2spcoeeol2motx',
+    'GERMANY': '6by3h89i2eykc341oz7lv1ddd',
+    'SPAIN': '34pl8szyvrbwcmfkuocjm3r6t',
+    'ITALY': '1r097lpxe0xn03ihb7wi98kao',
+    'CHAMPIONLEAGUE': '4oogyu6o156iphvdvphwpck10',
+    'EUROPALEAGUE': '4c1nfi2j1m731hcay25fcgndq',
 }
 
 
-def get_standings(competition: str) -> pd.DataFrame:
+def get_standings(competition: str) -> tuple:
     useragent: str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1)" \
                      " AppleWebKit/537.36 (KHTML, like Gecko)" \
                      " Chrome/39.0.2171.95 Safari/537.36"
@@ -31,44 +31,85 @@ def get_standings(competition: str) -> pd.DataFrame:
 
     with httpx.Client() as client:
         try:
-            resp = client.get(
-                f'https://www.goal.com/en-us/ajax/match/standings?matchId={competitions.get(competition)}',
+            resp_home = client.get(
+                f'https://www.goal.com/api/competition/standings?edition=en-us&id={competitions.get(competition)}&type=HOME',
+                headers=headers)
+            resp_away = client.get(
+                f'https://www.goal.com/api/competition/standings?edition=en-us&id={competitions.get(competition)}&type=AWAY',
                 headers=headers)
         except httpx.TimeoutException as e:
             logger.error(f"Timeout Exception: {e}")
 
-    if resp.status_code != 200:
+    if resp_home.status_code != 200:
         logger.error(
-            f"No response received, status code: {resp.status_code}")
-        return pd.DataFrame()
+            f"No response received, status code: {resp_home.status_code}")
+        return ()
 
-    results = transform_results(resp.json()['standings'])
+    if resp_away.status_code != 200:
+        logger.error(
+            f"No response received, status code: {resp_away.status_code}")
+        return ()
+
+    home_results = resp_home.json()['tables'][0]['rankings']
+    away_results = resp_away.json()['tables'][0]['rankings']
+
+    (results, home, away) = transform_results(home_results, away_results)
+
     logger.info("Data crawled from goal.com successful!")
 
-    return results
+    return results, home, away
 
 
-def transform_results(results: json) -> pd.DataFrame:
-    pd.set_option('display.max_columns', None)
-    df: pd.DataFrame = pd.DataFrame(results)
-    if len(results) == 0:
-        return df
+def transform_results(home_results: json, away_results: json) -> tuple:
+    home = []
+    away = []
+    for result in home_results:
+        team_name = result["team"]["long"]
+        data = {
+            "Team": team_name,
+            "P": result["played"],
+            "W": result["win"],
+            "L": result["lose"],
+            "D": result["draw"],
+            "F": result["goalsFor"],
+            "A": result["goalsAgainst"],
+            "+/-": result["goalsDifference"],
+            "PTS": result["points"],
+        }
+        home.append(data)
 
-    df.drop(
-        columns=['teamId', 'teamCode', 'teamCrest', 'rankStatus', 'rankChange', 'teamUrl', 'lastForm', 'isHighlighted',
-                 'liveDetails'], inplace=True)
+    for result in away_results:
+        team_name = result["team"]['long']
+        data = {
+            "Team": team_name,
+            "P": result["played"],
+            "W": result["win"],
+            "L": result["lose"],
+            "D": result["draw"],
+            "F": result["goalsFor"],
+            "A": result["goalsAgainst"],
+            "+/-": result["goalsDifference"],
+            "PTS": result["points"],
+        }
+        away.append(data)
 
-    df.rename(
-        columns={'teamName': 'Team', 'rank': 'Pos', 'matchesPlayed': 'P', 'matchesWon': 'W', 'matchesLost': 'L',
-                 'matchesDrawn': 'D', 'goalsFor': 'F', 'goalsAgainst': 'A', 'goalDifference': '+/-',
-                 'points': 'PTS', }, inplace=True)
+    home_df: pd.DataFrame = pd.DataFrame(home)
+    home_df.index = home_df.index + 1
+    away_df: pd.DataFrame = pd.DataFrame(away)
+    away_df.index = away_df.index + 1
 
+    df = pd.concat([home_df, away_df])
+    df = df.groupby(by='Team').sum()
+    df = df.sort_values(by=['PTS', '+/-'], ascending=False)
+    df.reset_index(inplace=True)
+    df.index = df.index + 1
     logger.info("Transforming results successful!")
-    return df.set_index('Pos')
+
+    return df, home_df, away_df
 
 
 def main():
-    print(get_standings('ITALY'))
+    print(get_standings('ENGLAND'))
 
 
 if __name__ == "__main__":
