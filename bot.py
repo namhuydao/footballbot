@@ -107,7 +107,7 @@ def handle_standings(message: types.Message):
         markup = standing_template()
 
         bot.send_message(
-            message.chat.id, "Choose one of these below", reply_markup=markup)
+            message.chat.id, "Select competition?", reply_markup=markup)
 
 
 # Markup Templates
@@ -225,9 +225,23 @@ def standing_template():
     return markup
 
 
+def standing_type_template(competition: str):
+    markup = types.InlineKeyboardMarkup()
+
+    all = types.InlineKeyboardButton("ALL", callback_data=f"{competition}-ALL")
+    home = types.InlineKeyboardButton("HOME", callback_data=f"{competition}-HOME")
+    away = types.InlineKeyboardButton("AWAY", callback_data=f"{competition}-AWAY")
+    back = types.InlineKeyboardButton("<< Back to competition", callback_data="back-to-select-competition")
+
+    markup.row(all, home, away)
+    markup.row(back)
+
+    return markup
+
+
 # Callback handler
 @bot.callback_query_handler(lambda query: query.data in ["0", "1", "2", "3", "4", "5"])
-def handle_select_type(query: str):
+def handle_select_type(query: types.CallbackQuery):
     num_day_from_now: int = int(query.data)
 
     markup = select_type_template(num_day_from_now)
@@ -241,7 +255,7 @@ def handle_select_type(query: str):
 
 
 @bot.callback_query_handler(lambda query: query.data == "back-to-select-date")
-def handle_back_to_select_date(query: str):
+def handle_back_to_select_date(query: types.CallbackQuery):
     markup = select_date_template()
 
     bot.edit_message_text(
@@ -255,7 +269,7 @@ def handle_back_to_select_date(query: str):
 @bot.callback_query_handler(
     lambda query: re.match("(full|majorc|toptrans)-.", query.data)
 )
-def handle_get_transfers(query: str):
+def handle_get_transfers(query: types.CallbackQuery):
     type: str = query.data.split("-")[0]
     full_type: str = (
         "All" if type == "full" else (
@@ -405,7 +419,36 @@ def handle_group_fixtures(query: types.CallbackQuery):
         "EUROPALEAGUE",
     ]
 )
+def handle_standing_type(query: types.CallbackQuery):
+    markup = standing_type_template(query.data)
+
+    bot.edit_message_text(
+        chat_id=query.message.chat.id,
+        message_id=query.message.message_id,
+        text="What type then?",
+        reply_markup=markup,
+    )
+
+
+@bot.callback_query_handler(lambda query: query.data == "back-to-select-competition")
+def handle_back_to_select_competition(query: types.CallbackQuery):
+    markup = standing_template()
+
+    bot.edit_message_text(
+        chat_id=query.message.chat.id,
+        message_id=query.message.message_id,
+        text="Select competition?",
+        reply_markup=markup,
+    )
+
+
+@bot.callback_query_handler(
+    lambda query: re.match(".+-(ALL|HOME|AWAY)", query.data)
+)
 def handle_standings(query: types.CallbackQuery):
+    competition: str = query.data.split("-")[0]
+    type: str = query.data.split("-")[1]
+
     bot.edit_message_text(
         chat_id=query.message.chat.id,
         message_id=query.message.message_id,
@@ -413,21 +456,19 @@ def handle_standings(query: types.CallbackQuery):
         reply_markup=None,
     )
 
-    results: pd.DataFrame = get_standings(query.data)
+    (all, home, away) = get_standings(competition)
 
-    if len(results) == 0:
-        bot.edit_message_text(
-            chat_id=query.message.chat.id,
-            message_id=query.message.message_id,
-            text="No standing yet",
-        )
-    else:
-        bot.edit_message_text(
-            chat_id=query.message.chat.id,
-            message_id=query.message.message_id,
-            text=f"Today {query.data} standing",
-        )
-        bot.send_message(query.message.chat.id, f"<pre>{results}</pre>", parse_mode='html')
+    bot.edit_message_text(
+        chat_id=query.message.chat.id,
+        message_id=query.message.message_id,
+        text=f"Today {competition} standing",
+    )
+    if type == 'ALL':
+        bot.send_message(query.message.chat.id, f"<pre>{all}</pre>", parse_mode='html')
+    if type == 'HOME':
+        bot.send_message(query.message.chat.id, f"<pre>{home}</pre>", parse_mode='html')
+    if type == 'AWAY':
+        bot.send_message(query.message.chat.id, f"<pre>{away}</pre>", parse_mode='html')
 
 
 # Polling
